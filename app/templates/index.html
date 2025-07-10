@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitHub Activity Feed</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 700px;
+      margin: 2rem auto;
+    }
+    h2 {
+      text-align: center;
+    }
+    li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+  <h2>GitHub Webhook Activity</h2>
+  <ul id="event-list"></ul>
+
+  <script>
+    function fetchEvents() {
+      fetch('/events')
+        .then(response => response.json())
+        .then(data => {
+          const ul = document.getElementById('event-list');
+          ul.innerHTML = "";
+
+          data.reverse().forEach(event => {
+            const li = document.createElement("li");
+            
+            const time = new Date(event.timestamp).toLocaleString("en-IN", {
+                  timeZone: "Asia/Kolkata",
+                  hour12: true
+            });
+
+            let msg = "";
+
+            if (event.action === "PUSH") {
+              msg = `"${event.author}" pushed to "${event.to_branch}" on ${time}`;
+            } else if (event.action === "PULL_REQUEST") {
+              msg = `"${event.author}" submitted a pull request from "${event.from_branch}" to "${event.to_branch}" on ${time}`;
+            } else if (event.action === "MERGE") {
+              msg = `"${event.author}" merged branch"${event.from_branch}" into "${event.to_branch}" on ${time}`;
+            }
+
+            li.textContent = msg;
+            ul.appendChild(li);
+          });
+        });
+    }
+
+    // Fetch on page load
+    fetchEvents();
+
+    // Poll every 15 seconds
+    setInterval(fetchEvents, 15000);
+  </script>
+</body>
+</html>
